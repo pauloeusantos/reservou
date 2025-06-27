@@ -1,7 +1,12 @@
+// ver-fb.js
+
 document.addEventListener('DOMContentLoaded', () => {
     const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado'));
     const params = new URLSearchParams(window.location.search);
     const restauranteId = params.get('id');
+
+    // URL CORRETA DO SEU BACKEND
+    const API_URL = 'https://reservou-api.vercel.app';
 
     if (!restauranteId) {
         bloquearAcesso('ID do restaurante não fornecido na URL.');
@@ -27,8 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = '';
         try {
             const [restaurantResponse, feedbacksResponse] = await Promise.all([
-                fetch(`/restaurantes/${restauranteId}`),
-                fetch(`/feedbacks?idRestaurante=${restauranteId}`)
+                fetch(`${API_URL}/restaurantes/${restauranteId}`), // URL CORRIGIDA
+                fetch(`${API_URL}/feedbacks?idRestaurante=${restauranteId}`) // URL CORRIGIDA
             ]);
 
             if (!restaurantResponse.ok) throw new Error('Restaurante não encontrado.');
@@ -83,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function excluirFeedback(idFeedback) {
         try {
-            const response = await fetch(`/feedbacks/${idFeedback}`, { method: 'DELETE' });
+            const response = await fetch(`${API_URL}/feedbacks/${idFeedback}`, { method: 'DELETE' }); // URL CORRIGIDA
             if (!response.ok) throw new Error('Falha ao excluir o feedback.');
             
             showCustomAlert('Feedback excluído com sucesso!');
@@ -97,6 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('profileLink').href = `pagina-admin.html?id=${restauranteId}`;
         document.getElementById('reservasLink').href = `reservas.html?id=${restauranteId}`;
         document.getElementById('editMenuLink').href = `editor-cardapio.html?id=${restauranteId}`;
+        document.getElementById('viewFeedbacksLink').href = `ver-fb.html?id=${restauranteId}`;
     }
 
     function bloquearAcesso(message) {
@@ -104,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="text-align: center; padding: 50px; font-family: sans-serif; color: #333;">
                 <h1 style="color: #8B0000;">Acesso Negado</h1>
                 <p style="font-size: 1.2rem;">${message}</p>
-                <a href="../../home.html" style="display: inline-block; padding: 12px 25px; background-color: #8B0000; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; font-weight: bold;">
+                <a href="home.html" style="display: inline-block; padding: 12px 25px; background-color: #8B0000; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; font-weight: bold;">
                     Voltar para a Home
                 </a>
             </div>

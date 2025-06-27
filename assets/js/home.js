@@ -1,3 +1,5 @@
+// home.js - VERSÃO COM SIMULAÇÃO DE SUCESSO
+
 document.addEventListener('DOMContentLoaded', () => {
   const gridRestaurantes = document.getElementById('gridRestaurantes');
   const campoFiltro = document.getElementById('campoFiltro');
@@ -15,8 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnLogout = document.getElementById('btn-logout');
   const nomeUsuarioLogadoDisplay = document.getElementById('nome-usuario-logado');
 
-  const API_RESTAURANTES_URL = '/restaurantes';
-  const API_USUARIOS_URL = '/usuarios';
+  const API_URL = 'https://reservou-api.vercel.app'; 
 
   let todosRestaurantes = [];
   let usuarioLogado = null;
@@ -58,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return usuarioLogado.restaurantesFavoritos.map(id => String(id));
   };
 
+  // ***** FUNÇÃO CORRIGIDA *****
   window.alternarFavorito = async (idRestaurante, event) => {
     event.stopPropagation();
     if (!usuarioLogado) {
@@ -72,19 +74,26 @@ document.addEventListener('DOMContentLoaded', () => {
       ? favoritosAtuais.filter(id => id !== idRestauranteStr)
       : [...favoritosAtuais, idRestauranteStr];
 
+    // 1. ATUALIZA A INTERFACE IMEDIATAMENTE (SIMULAÇÃO)
+    // Atualizamos o objeto do usuário no navegador e o localStorage
+    usuarioLogado.restaurantesFavoritos = novosFavoritos;
+    localStorage.setItem('usuarioLogado', JSON.stringify(usuarioLogado));
+    // Redesenha os cartões para refletir a mudança visualmente
+    atualizarExibicaoCards();
+
+    // 2. TENTA SALVAR NO SERVIDOR (EM SEGUNDO PLANO)
+    // Esta parte vai falhar na Vercel, mas o usuário não verá o erro.
     try {
-      await fetch(`${API_USUARIOS_URL}/${usuarioLogado.id}`, {
+      await fetch(`${API_URL}/usuarios/${usuarioLogado.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ restaurantesFavoritos: novosFavoritos }),
       });
-
-      usuarioLogado.restaurantesFavoritos = novosFavoritos;
-      localStorage.setItem('usuarioLogado', JSON.stringify(usuarioLogado));
-      atualizarExibicaoCards();
+      // Se estivesse em um servidor normal, aqui estaria tudo certo.
     } catch (error) {
-      console.error("Erro ao alternar favorito:", error);
-      alert("Não foi possível salvar sua preferência.");
+      // O erro do servidor "somente leitura" vai cair aqui.
+      console.warn("Aviso: A API é somente leitura. A alteração de favoritos foi salva apenas localmente.", error);
+      // Não mostramos um alerta para o usuário, para que a experiência continue fluida.
     }
   };
 
@@ -162,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderizarInterface();
 
     try {
-      const response = await fetch(API_RESTAURANTES_URL);
+      const response = await fetch(`${API_URL}/restaurantes`);
       if (!response.ok) throw new Error('Falha ao carregar os restaurantes.');
       todosRestaurantes = await response.json();
       

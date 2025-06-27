@@ -1,8 +1,11 @@
+// cadastro-restaurantes.js
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('formularioCadastro');
     const fotoInput = document.getElementById('foto');
     const imagemPreview = document.getElementById('imagemPreview');
     let fotoBase64 = null;
+
+    const API_URL = 'https://reservou-api.vercel.app';
 
     fotoInput.addEventListener('change', (event) => {
         const file = event.target.files[0];
@@ -56,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            const response = await fetch('/restaurantes', {
+            const response = await fetch(`${API_URL}/restaurantes`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(novoRestaurante),
@@ -68,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
             const restauranteSalvo = await response.json();
         
+            // LÓGICA DO TOKEN PRESERVADA
             const editorToken = btoa(JSON.stringify({
                 restauranteId: restauranteSalvo.id,
                 timestamp: Date.now(),

@@ -1,8 +1,13 @@
+// editor-cardapio.js
+
 document.addEventListener('DOMContentLoaded', () => {
 
     const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado'));
     const params = new URLSearchParams(window.location.search);
     const restauranteId = params.get('id');
+
+    // URL DO SEU BACKEND
+     const API_URL = 'https://reservou-api.vercel.app';
 
     if (!restauranteId) {
         bloquearAcesso('ID do restaurante não fornecido na URL.');
@@ -17,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuEditorDiv = document.getElementById('menuEditor');
     const loadingDiv = document.getElementById('loading');
     const addCategoryBtn = document.getElementById('addCategoryBtn');
-    
+
     const itemModalEl = document.getElementById('itemModal');
     const itemModal = new bootstrap.Modal(itemModalEl);
     const itemForm = document.getElementById('itemForm');
@@ -33,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const promptForm = document.getElementById('promptForm');
     const promptInput = document.getElementById('promptInput');
     const promptModalMessage = document.getElementById('promptModalMessage');
-    
+
     let restauranteData = null;
 
     async function inicializar() {
@@ -41,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             loadingDiv.style.display = 'flex';
             menuEditorDiv.style.display = 'none';
-            const response = await fetch(`/restaurantes/${restauranteId}`);
+            const response = await fetch(`${API_URL}/restaurantes/${restauranteId}`); // URL CORRIGIDA
             if (!response.ok) throw new Error('Restaurante não encontrado');
             restauranteData = await response.json();
 
@@ -72,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     }
-    
+
     function criarCategoriaDiv(nomeCategoria, itens) {
         const div = document.createElement('div');
         div.className = 'category-section';
@@ -106,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
     }
-    
+
     addCategoryBtn.addEventListener('click', async () => {
         const nomeCategoria = await showCustomPrompt("Digite o nome da nova categoria (sem espaços, ex: PratosPrincipais):");
         if (nomeCategoria && nomeCategoria.trim()) {
@@ -144,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
-    
+
     itemForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const nome = document.getElementById('itemName').value;
@@ -181,11 +186,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         itemModal.show();
     }
-    
+
     async function salvarErenderizar() {
         try {
             loadingDiv.style.display = 'flex';
-            const response = await fetch(`/restaurantes/${restauranteId}`, {
+            const response = await fetch(`${API_URL}/restaurantes/${restauranteId}`, { // URL CORRIGIDA
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ cardapio: restauranteData.cardapio }),
@@ -198,14 +203,14 @@ document.addEventListener('DOMContentLoaded', () => {
             loadingDiv.style.display = 'none';
         }
     }
-    
+
     function configurarLinksLaterais() {
         document.getElementById('profileLink').href = `pagina-admin.html?id=${restauranteId}`;
         document.getElementById('reservasLink').href = `reservas.html?id=${restauranteId}`;
         document.getElementById('editMenuLink').href = `editor-cardapio.html?id=${restauranteId}`;
         document.getElementById('viewFeedbacksLink').href = `ver-fb.html?id=${restauranteId}`;
     }
-    
+
     function bloquearAcesso(message) {
         document.body.innerHTML = `
             <div style="text-align: center; padding: 50px; font-family: sans-serif; color: #333;">
@@ -222,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
         alertModalBody.textContent = message;
         alertModal.show();
     }
-    
+
     function showCustomConfirm(message) {
         return new Promise((resolve) => {
             confirmModalBody.textContent = message;
@@ -272,12 +277,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return 0;
     }
-    
+
     function formatarNomeCategoria(nome) {
         if (!nome) return '';
         const comEspacos = nome.replace(/([A-Z])/g, ' $1');
         return comEspacos.charAt(0).toUpperCase() + comEspacos.slice(1);
     }
-    
+
     inicializar();
 });

@@ -1,5 +1,10 @@
+// cadastro-usuario.js
+
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('cadastroFormUsuario');
+
+    // URL DO SEU BACKEND
+    const API_URL = 'https://reservou-api.vercel.app';
   
     form.addEventListener('submit', async function(event) {
         event.preventDefault();
@@ -20,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
   
         try {
-          const checkEmailResponse = await fetch(`/usuarios?email=${email}`);
+          const checkEmailResponse = await fetch(`${API_URL}/usuarios?email=${email}`); // URL CORRIGIDA
           const existingUsers = await checkEmailResponse.json();
   
           if (existingUsers.length > 0) {
@@ -37,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
               restaurantesFavoritos: [] 
           };
   
-          const createUserResponse = await fetch('/usuarios', {
+          const createUserResponse = await fetch(`${API_URL}/usuarios`, { // URL CORRIGIDA
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json',
@@ -62,4 +67,4 @@ document.addEventListener('DOMContentLoaded', () => {
           messageDiv.style.display = 'block';
         }
     });
-  });
+});

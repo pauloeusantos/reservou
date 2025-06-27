@@ -1,5 +1,6 @@
+// favoritos.js
+
 document.addEventListener('DOMContentLoaded', () => {
-    
     const gridRestaurantes = document.getElementById('gridRestaurantes');
     const tituloSecao = document.getElementById('titulo-secao');
     
@@ -11,9 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const navDefault = document.getElementById('nav-default');
     const navRestaurante = document.getElementById('nav-restaurante');
     const nomeRestauranteLogado = document.getElementById('nome-restaurante-logado');
-  
-    const API_RESTAURANTES_URL = '/restaurantes';
-    const API_USUARIOS_URL = '/usuarios';
+
+    // URL CORRETA DO SEU BACKEND
+    const API_URL = 'https://reservou-api.vercel.app';
   
     let usuarioLogado = null;
     let restauranteLogado = null; 
@@ -48,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       if (restaurantes.length === 0) {
           tituloSecao.textContent = "VOCÊ AINDA NÃO TEM FAVORITOS";
-          gridRestaurantes.innerHTML = `<p class="text-center">Explore a <a style="color: #8b0000;" href="../../home.html">página inicial</a> e clique na estrela ⭐ para adicionar restaurantes!</p>`;
+          gridRestaurantes.innerHTML = `<p class="text-center">Explore a <a style="color: #8b0000;" href="home.html">página inicial</a> e clique na estrela ⭐ para adicionar restaurantes!</p>`;
           return;
       }
   
@@ -56,8 +57,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const cartaoHTML = `
           <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
             <div class="card h-100 card-restaurante position-relative">
-              <a href="../../reservar.html?id=${rest.id}" class="card-link">
-                <img src="../../${rest.infoCadastro.imagemUrl}" class="card-img-top" alt="Imagem de ${rest.infoCadastro.nome}">
+              <a href="reservar.html?id=${rest.id}" class="card-link">
+                <img src="${rest.infoCadastro.imagemUrl}" class="card-img-top" alt="Imagem de ${rest.infoCadastro.nome}">
                 <div class="card-body">
                   <h6 class="card-title mb-0">${rest.infoCadastro.nome}</h6>
                   <p class="card-text">${rest.infoCadastro.categoria}</p>
@@ -77,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const novosFavoritos = favoritosAtuais.filter(id => id !== idRestaurante);
   
       try {
-        await fetch(`${API_USUARIOS_URL}/${usuarioLogado.id}`, {
+        await fetch(`${API_URL}/usuarios/${usuarioLogado.id}`, { // URL CORRIGIDA
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ restaurantesFavoritos: novosFavoritos }),
@@ -109,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
       if (!usuarioLogado) {
           tituloSecao.textContent = "ACESSO NEGADO";
-          gridRestaurantes.innerHTML = `<p class="text-center fs-5">Você precisa fazer <a href="../../login.html">login</a> para ver seus restaurantes favoritos.</p>`;
+          gridRestaurantes.innerHTML = `<p class="text-center fs-5">Você precisa fazer <a href="login.html">login</a> para ver seus restaurantes favoritos.</p>`;
           return;
       }
       
@@ -119,35 +120,30 @@ document.addEventListener('DOMContentLoaded', () => {
           exibirCartoes([]);
           return;
       }
-  
-  // Em favoritos.js, dentro da função init()
 
-try {
-    // Constrói a URL com todos os IDs de uma vez
-    // Ex: /restaurantes?id=1&id=2&id=5
-    const params = new URLSearchParams();
-    favoritosIds.forEach(id => params.append('id', id));
-    
-    // Faz uma única chamada à API
-    const response = await fetch(`/restaurantes?${params.toString()}`);
+      try {
+          const params = new URLSearchParams();
+          favoritosIds.forEach(id => params.append('id', id));
+          
+          const response = await fetch(`${API_URL}/restaurantes?${params.toString()}`); // URL CORRIGIDA
 
-    if (!response.ok) {
-        throw new Error('Falha ao carregar os dados dos seus favoritos.');
-    }
+          if (!response.ok) {
+              throw new Error('Falha ao carregar os dados dos seus favoritos.');
+          }
 
-    const restaurantesFavoritos = await response.json();
-    exibirCartoes(restaurantesFavoritos);
+          const restaurantesFavoritos = await response.json();
+          exibirCartoes(restaurantesFavoritos);
 
-} catch (error) {
-  console.error("Erro ao carregar restaurantes favoritos:", error);
-  gridRestaurantes.innerHTML = "<p class='text-center text-danger w-100'>Erro ao carregar os dados dos seus favoritos.</p>";
-}
+      } catch (error) {
+        console.error("Erro ao carregar restaurantes favoritos:", error);
+        gridRestaurantes.innerHTML = "<p class='text-center text-danger w-100'>Erro ao carregar os dados dos seus favoritos.</p>";
+      }
     };
     
     btnLogout.addEventListener('click', () => {
       localStorage.removeItem('usuarioLogado');
-      window.location.href = '../../home.html'; 
+      window.location.href = 'home.html'; 
     });
   
     init();
-  });
+});

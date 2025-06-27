@@ -1,7 +1,12 @@
+// pagina-admin.js
+
 document.addEventListener('DOMContentLoaded', function() {
     const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado'));
     const params = new URLSearchParams(window.location.search);
     const restauranteIdDaUrl = params.get('id');
+
+    // URL CORRETA DO SEU BACKEND
+    const API_URL = 'https://reservou-api.vercel.app';
 
     if (!usuarioLogado || usuarioLogado.type !== 'restaurante') {
         bloquearAcesso('Acesso restrito. Por favor, faça login como um restaurante.');
@@ -35,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function carregarDadosDoRestaurante() {
         try {
-            const response = await fetch(`/restaurantes/${restauranteIdDaUrl}`);
+            const response = await fetch(`${API_URL}/restaurantes/${restauranteIdDaUrl}`); // URL CORRIGIDA
             if (!response.ok) throw new Error('Restaurante não encontrado.');
             restauranteAtual = await response.json();
             
@@ -56,7 +61,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const imageUrl = info.imagemUrl || '../img/placeholder.png';
         if (imageUrl.startsWith('assets/')) {
-            document.getElementById('restaurantImagePreview').src = `../../${imageUrl}`;
+            // Se a URL já for relativa, não precisa do '../../'
+            document.getElementById('restaurantImagePreview').src = imageUrl;
         } else {
             document.getElementById('restaurantImagePreview').src = imageUrl;
         }
@@ -83,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            const response = await fetch(`/restaurantes/${restauranteIdDaUrl}`, {
+            const response = await fetch(`${API_URL}/restaurantes/${restauranteIdDaUrl}`, { // URL CORRIGIDA
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ infoCadastro: dadosParaAtualizar })
@@ -100,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function bloquearAcesso(message) {
-        document.body.innerHTML = `<div style="text-align: center; padding: 50px; font-family: sans-serif; color: #333;"><h1 style="color: #8B0000;">Acesso Negado</h1><p style="font-size: 1.2rem;">${message}</p><a href="../../home.html" style="display: inline-block; padding: 12px 25px; background-color: #8B0000; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; font-weight: bold;">Voltar para a Home</a></div>`;
+        document.body.innerHTML = `<div style="text-align: center; padding: 50px; font-family: sans-serif; color: #333;"><h1 style="color: #8B0000;">Acesso Negado</h1><p style="font-size: 1.2rem;">${message}</p><a href="home.html" style="display: inline-block; padding: 12px 25px; background-color: #8B0000; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; font-weight: bold;">Voltar para a Home</a></div>`;
     }
 
     async function cancelarEdicao() {

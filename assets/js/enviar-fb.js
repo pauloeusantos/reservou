@@ -1,5 +1,10 @@
+// enviar-fb.js
+
 document.addEventListener('DOMContentLoaded', () => {
     const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado'));
+
+    // URL CORRETA DO SEU BACKEND
+    const API_URL = 'https://reservou-api.vercel.app';
 
     if (!usuarioLogado) {
         bloquearFormularioParaAnonimos();
@@ -22,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function carregarRestaurantes() {
         try {
-            const response = await fetch('/restaurantes');
+            const response = await fetch(`${API_URL}/restaurantes`); // URL CORRIGIDA
             if (!response.ok) throw new Error('Falha ao carregar a lista de restaurantes.');
             const restaurantes = await response.json();
             
@@ -42,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function enviarFeedback(feedbackData) {
         messageDiv.style.display = 'none';
         try {
-            const response = await fetch('/feedbacks', {
+            const response = await fetch(`${API_URL}/feedbacks`, { // URL CORRIGIDA
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(feedbackData),
@@ -83,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
         overlay.innerHTML = `
             <div class="overlay-content">
                 <p>Você precisa estar logado para enviar um feedback.</p>
-                <a href="../../login.html" class="btn btn-login">Fazer Login</a>
+                <a href="login.html" class="btn btn-login">Fazer Login</a>
             </div>
         `;
         document.getElementById('feedbackForm').appendChild(overlay);

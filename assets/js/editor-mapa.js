@@ -1,14 +1,19 @@
+// editor-mapa.js
+
 document.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
     const restauranteIdDaUrl = params.get('id');
     const editorToken = sessionStorage.getItem('editorToken');
+
+    // URL CORRETA DO SEU BACKEND
+    const API_URL = 'https://reservou-api.vercel.app';
 
     function bloquearAcesso(message, redirect = true) {
         document.body.innerHTML = `
             <div style="text-align: center; padding: 50px; font-family: sans-serif; color: #333;">
                 <h1 style="color: #8B0000;">Acesso Bloqueado</h1>
                 <p style="font-size: 1.2rem;">${message}</p>
-                ${redirect ? `<a href="/home.html" style="display: inline-block; padding: 12px 25px; background-color: #8B0000; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; font-weight: bold;">Voltar para a Home</a>` : ''}
+                ${redirect ? `<a href="home.html" style="display: inline-block; padding: 12px 25px; background-color: #8B0000; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; font-weight: bold;">Voltar para a Home</a>` : ''}
             </div>
         `;
     }
@@ -74,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function inicializarEditor() {
         try {
-            const response = await fetch(`/restaurantes/${restauranteIdDaUrl}`);
+            const response = await fetch(`${API_URL}/restaurantes/${restauranteIdDaUrl}`); // URL CORRIGIDA
             if (!response.ok) throw new Error('Restaurante não encontrado.');
             
             restauranteData = await response.json();
@@ -301,7 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function salvarMapaNoServidor() {
         try {
-            const response = await fetch(`/restaurantes/${restauranteIdDaUrl}`, {
+            const response = await fetch(`${API_URL}/restaurantes/${restauranteIdDaUrl}`, { // URL CORRIGIDA
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ mapaRestaurante: restauranteData.mapaRestaurante }),

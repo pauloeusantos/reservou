@@ -1,16 +1,16 @@
-// login.js - VERSÃO CORRIGIDA
-
+// login.js
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('loginForm');
     const messageDiv = document.getElementById('message');
     const tipoContaToggle = document.getElementById('tipoContaToggle');
+
+    const API_URL = 'https://reservou-api.vercel.app';
 
     if (!loginForm || !messageDiv || !tipoContaToggle) {
         console.error("Erro: Elementos essenciais do formulário não encontrados.");
         return;
     }
 
-    // Lógica para o switch de labels (continua a mesma)
     const labels = document.querySelectorAll('.switch-label');
     function updateSwitchLabels() {
         const isRestaurante = tipoContaToggle.checked;
@@ -35,29 +35,29 @@ document.addEventListener('DOMContentLoaded', () => {
         messageDiv.style.display = 'none';
 
         try {
-            // 1. A URL agora aponta para a nossa rota customizada e segura
-            const response = await fetch('/api/login', {
-                method: 'POST', // 2. O método agora é POST
+            const response = await fetch(`${API_URL}/api/login`, {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                // 3. Enviamos os dados no corpo da requisição
                 body: JSON.stringify({ email, password, isRestaurante }),
             });
 
             const data = await response.json();
 
-            // 4. Se a resposta não for OK (ex: erro 401), o backend já nos deu a mensagem de erro
             if (!response.ok) {
                 throw new Error(data.message || 'Erro ao tentar fazer login.');
             }
 
-            // 5. Se o login foi bem-sucedido, o 'data' já é o objeto do usuário logado
             handleSuccessfulLogin(data);
 
         } catch (error) {
             console.error('Erro de login:', error);
-            showError(error.message);
+            if (error instanceof SyntaxError) {
+                showError('Ocorreu um erro inesperado no servidor. Tente novamente.');
+            } else {
+                showError(error.message);
+            }
         }
     });
 
@@ -66,10 +66,8 @@ document.addEventListener('DOMContentLoaded', () => {
         messageDiv.textContent = 'Login realizado com sucesso! Redirecionando...';
         messageDiv.style.display = 'block';
 
-        // Salva os dados recebidos do backend no localStorage
         localStorage.setItem('usuarioLogado', JSON.stringify(accountData));
         
-        // Redireciona para a home
         setTimeout(() => {
             window.location.href = "home.html";
         }, 1500);
