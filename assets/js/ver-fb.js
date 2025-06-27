@@ -1,18 +1,19 @@
-// ver-fb.js
-
 document.addEventListener('DOMContentLoaded', () => {
     const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado'));
     const params = new URLSearchParams(window.location.search);
     const restauranteId = params.get('id');
 
-    // URL CORRETA DO SEU BACKEND
     const API_URL = 'https://reservou-api.vercel.app';
+
+    console.log('usuário logado:', usuarioLogado);
+    console.log('restauranteId (URL):', restauranteId);
 
     if (!restauranteId) {
         bloquearAcesso('ID do restaurante não fornecido na URL.');
         return;
     }
-    if (!usuarioLogado || usuarioLogado.type !== 'restaurante' || usuarioLogado.id !== restauranteId) {
+
+    if (!usuarioLogado || usuarioLogado.type !== 'restaurante' || String(usuarioLogado.id) !== String(restauranteId)) {
         bloquearAcesso('Você não tem permissão para acessar esta página.');
         return;
     }
@@ -27,40 +28,44 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmModalBody = document.getElementById('confirmModalBody');
     const confirmOkBtn = document.getElementById('confirmOkBtn');
 
-    async function carregarFeedbacks() {
-        loadingSpinner.style.display = 'block';
-        container.innerHTML = '';
-        try {
-            const [restaurantResponse, feedbacksResponse] = await Promise.all([
-                fetch(`${API_URL}/restaurantes/${restauranteId}`), // URL CORRIGIDA
-                fetch(`${API_URL}/feedbacks?idRestaurante=${restauranteId}`) // URL CORRIGIDA
-            ]);
+async function carregarFeedbacks() {
+    loadingSpinner.style.display = 'block';
+    container.innerHTML = '';
+    try {
+        const [restaurantResponse, feedbacksResponse] = await Promise.all([
+            fetch(`${API_URL}/restaurantes/${restauranteId}`),
+            fetch(`${API_URL}/feedbacks`) // <-- Pega todos
+        ]);
 
-            if (!restaurantResponse.ok) throw new Error('Restaurante não encontrado.');
-            if (!feedbacksResponse.ok) throw new Error('Falha ao buscar feedbacks.');
+        if (!restaurantResponse.ok) throw new Error('Restaurante não encontrado.');
+        if (!feedbacksResponse.ok) throw new Error('Falha ao buscar feedbacks.');
 
-            const restaurante = await restaurantResponse.json();
-            const feedbacks = await feedbacksResponse.json();
+        const restaurante = await restaurantResponse.json();
+        const allFeedbacks = await feedbacksResponse.json();
 
-            restaurantNameEl.textContent = `para ${restaurante.infoCadastro.nome}`;
-            
-            if (feedbacks.length === 0) {
-                container.innerHTML = '<div class="col-12"><p class="text-center p-4 bg-white rounded shadow-sm">Nenhum feedback para este restaurante ainda.</p></div>';
-                return;
-            }
+        const feedbacks = allFeedbacks.filter(fb => fb.idRestaurante === restauranteId); // filtro aqui
 
-            feedbacks
-                .sort((a, b) => new Date(b.data) - new Date(a.data))
-                .forEach(renderizarFeedback);
+        restaurantNameEl.textContent = `para ${restaurante.infoCadastro.nome}`;
 
-        } catch (error) {
-            showCustomAlert(error.message);
-        } finally {
-            loadingSpinner.style.display = 'none';
+        if (!feedbacks || feedbacks.length === 0) {
+            container.innerHTML = '<div class="col-12"><p class="text-center p-4 bg-white rounded shadow-sm">Nenhum feedback para este restaurante ainda.</p></div>';
+            return;
         }
+
+        feedbacks
+            .sort((a, b) => new Date(b.data) - new Date(a.data))
+            .forEach(renderizarFeedback);
+
+    } catch (error) {
+        showCustomAlert(error.message);
+    } finally {
+        loadingSpinner.style.display = 'none';
     }
+}
+
 
     function renderizarFeedback(feedback) {
+        console.log('Renderizando feedback:', feedback);
         const col = document.createElement('div');
         col.className = 'col';
         col.innerHTML = `
@@ -88,24 +93,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function excluirFeedback(idFeedback) {
         try {
-            const response = await fetch(`${API_URL}/feedbacks/${idFeedback}`, { method: 'DELETE' }); // URL CORRIGIDA
+            const response = await fetch(`${API_URL}/feedbacks/${idFeedback}`, { method: 'DELETE' });
             if (!response.ok) throw new Error('Falha ao excluir o feedback.');
-            
+
             showCustomAlert('Feedback excluído com sucesso!');
             await carregarFeedbacks();
-        } catch(error) {
+        } catch (error) {
             showCustomAlert(error.message);
         }
     }
 
-    function configurarLinksLaterais() {
-        document.getElementById('profileLink').href = `pagina-admin.html?id=${restauranteId}`;
-        document.getElementById('reservasLink').href = `reservas.html?id=${restauranteId}`;
-        document.getElementById('editMenuLink').href = `editor-cardapio.html?id=${restauranteId}`;
-        document.getElementById('viewFeedbacksLink').href = `ver-fb.html?id=${restauranteId}`;
-    }
+   function configurarLinksLaterais() {
+    document.getElementById('profileLink').href = `pagina-admin.html?id=${restauranteId}`;
+    document.getElementById('reservasLink').href = `reservas.html?id=${restauranteId}`;
+    document.getElementById('editMenuLink').href = `editor-cardapio.html?id=${restauranteId}`;
+    // Linha abaixo removida pois o elemento não existe no HTML
+    // document.getElementById('viewFeedbacksLink').href = `ver-fb.html?id=${restauranteId}`;
+}
+
 
     function bloquearAcesso(message) {
+        console.warn('Acesso bloqueado:', message);
         document.body.innerHTML = `
             <div style="text-align: center; padding: 50px; font-family: sans-serif; color: #333;">
                 <h1 style="color: #8B0000;">Acesso Negado</h1>
@@ -126,8 +134,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Promise((resolve) => {
             confirmModalBody.textContent = message;
             confirmModal.show();
-            const onConfirm = () => { confirmModal.hide(); resolve(true); };
-            const onHide = () => { confirmOkBtn.removeEventListener('click', onConfirm); resolve(false); };
+            const onConfirm = () => {
+                confirmModal.hide();
+                resolve(true);
+            };
+            const onHide = () => {
+                confirmOkBtn.removeEventListener('click', onConfirm);
+                resolve(false);
+            };
             confirmOkBtn.addEventListener('click', onConfirm, { once: true });
             confirmModal._element.addEventListener('hidden.bs.modal', onHide, { once: true });
         });
